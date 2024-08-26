@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Playground with Monaco and Brython</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        #editor {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #218838;
+        }
+        .output {
+            background-color: #fff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            font-family: monospace;
+            white-space: pre-wrap; /* Preserves whitespace and line breaks */
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/brython@3.11.1/brython.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
+</head>
+<body onload="brython()">
+
+    <h2>Python Playground with Monaco Editor and Brython</h2>
+    <p>Write and execute Python code below:</p>
+
+    <div id="editor"></div>
+
+    <button class="button" id="runCode">Run Code</button>
+
+    <div class="output" id="output"></div>
+
+    <script>
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs' }});
+
+        require(['vs/editor/editor.main'], function() {
+            window.editor = monaco.editor.create(document.getElementById('editor'), {
+                value: '# Write your Python code here\n',
+                language: 'python',
+                theme: 'vs-dark',
+                automaticLayout: true
+            });
+        });
+    </script>
+
+    <script type="text/python">
+        from browser import document, window
+
+        def print_output(*args):
+            output_element = document["output"]
+            output_element.text += " ".join(map(str, args)) + "\n"
+
+        def execute_code(event):
+            code = window.editor.getValue()
+            print(code)
+            output_element = document["output"]
+            output_element.text = ""
+            try:
+                if code.strip():  # Ensure there is code to evaluate
+                    compiled_code = compile(code, "<string>", "exec")
+                    exec(compiled_code, globals())
+                    
+                    # Try to evaluate the last expression
+                    last_expr = eval(code.splitlines()[-1], globals())
+                    print_output(last_expr)
+            except Exception as e:
+                print_output(f"Error: {str(e)}")
+
+        document["runCode"].bind("click", execute_code)
+    </script>
+
+</body>
+</html>
